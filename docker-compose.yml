@@ -1,0 +1,35 @@
+version: '3'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - DATABASE_URL=mongodb://mongodb:27017/queueSystem
+      - JWT_SECRET=your_jwt_secret
+      - JWT_EXPIRES_IN=90d
+      - RABBITMQ_URL=amqp://rabbitmq
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  mongodb:
+    image: "mongo"
+    ports:
+      - "27017:27017"
+
+  worker:
+    build: .
+    command: node workers/worker.js
+    depends_on:
+      - rabbitmq
+      - mongodb
+    environment:
+      - DATABASE_URL=mongodb://mongodb:27017/queueSystem
+      - RABBITMQ_URL=amqp://rabbitmq
